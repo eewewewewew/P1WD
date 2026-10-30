@@ -1,0 +1,43 @@
+name: Build P1WD EXE
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Create program
+        shell: pwsh
+        run: |
+          @'
+          import tkinter as tk
+          root = tk.Tk()
+          root.title("P1WD")
+          root.configure(bg="black")
+          root.attributes("-fullscreen", True)
+          label = tk.Label(root, text="P1WD",
+              fg="red", bg="black",
+              font=("Consolas", 90, "bold"))
+          label.pack(expand=True)
+          root.bind("<Escape>", lambda e: root.destroy())
+          root.mainloop()
+          '@ | Set-Content p1wd.py
+
+      - name: Build EXE
+        run: |
+          pip install pyinstaller
+          pyinstaller --onefile --windowed --name P1WD p1wd.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: P1WD-EXE
+          path: dist/P1WD.exe
